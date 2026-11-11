@@ -110,7 +110,7 @@ jobs:
       - name: Create DMG
         run: |
           test -s build/ShareMan.app/Contents/Resources/AppIcon.icns
-          scripts/make-dmg.sh build/ShareMan.app build/ShareMan.dmg
+          sh -x scripts/make-dmg.sh build/ShareMan.app build/ShareMan.dmg
           lipo -info build/ShareMan.app/Contents/MacOS/ShareManApp
           hdiutil verify build/ShareMan.dmg
 

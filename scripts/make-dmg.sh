@@ -86,12 +86,22 @@ fi
 
 rm -rf "$MNT/.fseventsd"
 sync
-hdiutil detach "$MNT" -quiet || hdiutil detach "$MNT" -quiet -force
+# Finder can keep the volume busy for a moment (icon cache, .DS_Store):
+# retry, then force.
+detached=0
+for _ in 1 2 3 4 5; do
+    if hdiutil detach "$MNT"; then
+        detached=1
+        break
+    fi
+    sleep 2
+done
+[ "$detached" = 1 ] || hdiutil detach "$MNT" -force
 MNT=""
 
 mkdir -p "$(dirname "$DMG")"
 rm -f "$DMG"
-hdiutil convert -quiet "$WORK/rw.dmg" -format UDZO -imagekey zlib-level=9 -o "$DMG"
+hdiutil convert "$WORK/rw.dmg" -format UDZO -imagekey zlib-level=9 -o "$DMG"
 
 if [ -n "${SIGN_IDENTITY:-}" ]; then
     codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
