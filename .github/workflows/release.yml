@@ -1,0 +1,163 @@
+name: Release
+
+# Pushing a tag like v1.2.3 builds ShareMan.app, packs it into a
+# drag-to-install DMG and publishes a GitHub Release (marked "latest").
+# Pull requests that touch the packaging only build the DMG as a workflow
+# artifact, without publishing anything.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      # Optional signing / notarization secrets, see RELEASING.md.
+      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+      MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            if ! printf '%s' "$GITHUB_REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Tag '$GITHUB_REF_NAME' is not of the form vX.Y.Z"
+              exit 1
+            fi
+            echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+            echo "IS_RELEASE=true" >> "$GITHUB_ENV"
+          else
+            echo "IS_RELEASE=false" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$MACOS_CERTIFICATE" ]; then
+            echo "HAS_CERT=true" >> "$GITHUB_ENV"
+          else
+            echo "HAS_CERT=false" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$MACOS_CERTIFICATE" ] && [ -n "$APPLE_ID" ] && [ -n "$APPLE_TEAM_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
+            echo "HAS_NOTARY=true" >> "$GITHUB_ENV"
+          else
+            echo "HAS_NOTARY=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Run tests
+        run: swift test
+
+      - name: Import signing certificate
+        if: env.HAS_CERT == 'true'
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KEYCHAIN_PWD="$(uuidgen)"
+          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -P "$MACOS_CERTIFICATE_PWD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          rm -f "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PWD" "$KEYCHAIN" > /dev/null
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" \
+            | awk -F '"' '/Developer ID Application/ { print $2; exit }')"
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::No 'Developer ID Application' identity in MACOS_CERTIFICATE"
+            exit 1
+          fi
+          echo "SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Build ShareMan.app (universal)
+        run: UNIVERSAL=1 scripts/build-app.sh
+
+      - name: Build command-line tool (universal)
+        run: |
+          swift build -c release --product shareman --arch arm64 --arch x86_64
+          BIN_DIR="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)"
+          mkdir -p build/cli
+          cp "$BIN_DIR/shareman" build/cli/shareman
+          if [ -n "${SIGN_IDENTITY:-}" ]; then
+            codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" build/cli/shareman
+          else
+            codesign --force --sign - --timestamp=none build/cli/shareman
+          fi
+          ditto -c -k build/cli/shareman build/shareman-macos.zip
+          lipo -info build/cli/shareman
+
+      - name: Create DMG
+        run: |
+          scripts/make-dmg.sh build/ShareMan.app build/ShareMan.dmg
+          lipo -info build/ShareMan.app/Contents/MacOS/ShareManApp
+          hdiutil verify build/ShareMan.dmg
+
+      - name: Notarize
+        if: env.HAS_NOTARY == 'true'
+        run: |
+          for f in build/ShareMan.dmg build/shareman-macos.zip; do
+            xcrun notarytool submit "$f" --wait \
+              --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD"
+          done
+          xcrun stapler staple build/ShareMan.dmg
+          spctl --assess --type open --context context:primary-signature -v build/ShareMan.dmg
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShareMan-${{ env.VERSION || github.sha }}
+          path: |
+            build/ShareMan.dmg
+            build/shareman-macos.zip
+
+      - name: Publish GitHub Release
+        if: env.IS_RELEASE == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          {
+            echo "## Installation"
+            echo
+            echo "1. Téléchargez **ShareMan.dmg** et ouvrez-le."
+            echo "2. Glissez **ShareMan** dans le dossier **Applications**."
+            if [ "$HAS_NOTARY" != "true" ]; then
+              echo "3. Au premier lancement, macOS indique qu'il ne peut pas vérifier l'application (elle n'est pas notarisée) : ouvrez **Réglages Système › Confidentialité et sécurité** puis cliquez sur **Ouvrir quand même**."
+            fi
+            echo
+            echo "**English:** open **ShareMan.dmg** and drag **ShareMan** into **Applications**."
+            if [ "$HAS_NOTARY" != "true" ]; then
+              echo "The app is not notarized yet: on first launch, go to **System Settings › Privacy & Security** and click **Open Anyway**."
+            fi
+            echo
+            echo "Outil en ligne de commande / command-line tool: \`shareman-macos.zip\`."
+            echo
+          } > "$RUNNER_TEMP/notes.md"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" build/ShareMan.dmg build/shareman-macos.zip --clobber
+          else
+            gh release create "$TAG" build/ShareMan.dmg build/shareman-macos.zip \
+              --verify-tag --latest \
+              --title "ShareMan $VERSION" \
+              --notes-file "$RUNNER_TEMP/notes.md" \
+              --generate-notes
+          fi
