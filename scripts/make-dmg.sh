@@ -64,10 +64,15 @@ osascript "$WORK/layout.applescript" &
 OSA_PID=$!
 ( sleep 60; kill "$OSA_PID" 2>/dev/null ) >/dev/null 2>&1 &
 WATCH_PID=$!
+stop_watchdog() {
+    pkill -P "$WATCH_PID" 2>/dev/null || true
+    kill "$WATCH_PID" 2>/dev/null || true
+    wait "$WATCH_PID" 2>/dev/null || true
+}
 if wait "$OSA_PID"; then
-    kill "$WATCH_PID" 2>/dev/null || true
+    stop_watchdog
 else
-    kill "$WATCH_PID" 2>/dev/null || true
+    stop_watchdog
     echo "Avertissement : mise en page Finder impossible, image créée sans disposition." >&2
 fi
 
