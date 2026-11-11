@@ -19,13 +19,15 @@ public enum PortScanner {
         /// Probes the kernel refused immediately, by `errno`.
         public var immediateFailures: [Int32: Int] = [:]
 
-        /// True when every probe was refused by the Mac itself before reaching
-        /// the network: the typical symptom of a denied "Local Network" permission.
+        /// True when nothing answered and (almost) every probe was refused by the
+        /// Mac itself before reaching the network: the typical symptom of macOS's
+        /// "Local Network" privacy check, which also hits a freshly rebuilt binary
+        /// on its first connections.
         public var looksBlockedLocally: Bool {
             guard probeCount > 0, open.isEmpty else { return false }
             let blocked = [EHOSTUNREACH, ENETUNREACH, EPERM, EACCES]
                 .reduce(0) { $0 + (immediateFailures[$1] ?? 0) }
-            return blocked == probeCount
+            return Double(blocked) >= Double(probeCount) * 0.9
         }
     }
 
@@ -48,6 +50,20 @@ public enum PortScanner {
         ports: [UInt16],
         timeout: TimeInterval = 0.6,
         batchSize requestedBatchSize: Int? = nil
+    ) -> Result {
+        let first = scanOnce(hosts: hosts, ports: ports, timeout: timeout, batchSize: requestedBatchSize)
+        guard first.looksBlockedLocally else { return first }
+        // macOS may refuse the first connections while it settles the Local
+        // Network permission: wait a moment and try once more.
+        usleep(1_500_000)
+        return scanOnce(hosts: hosts, ports: ports, timeout: timeout, batchSize: requestedBatchSize)
+    }
+
+    private static func scanOnce(
+        hosts: [UInt32],
+        ports: [UInt16],
+        timeout: TimeInterval,
+        batchSize requestedBatchSize: Int?
     ) -> Result {
         let fileLimit = Sockets.raiseOpenFileLimit()
         let batchSize = max(1, min(requestedBatchSize ?? 1024, fileLimit - 64))

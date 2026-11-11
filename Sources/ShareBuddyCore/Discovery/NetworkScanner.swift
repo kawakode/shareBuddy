@@ -181,8 +181,9 @@ public enum NetworkScanner {
         var warnings: [String] = []
         if tcp.looksBlockedLocally && nfsByRPC.isEmpty {
             warnings.append(
-                "macOS a bloqué toutes les connexions avant qu'elles partent sur le réseau. "
-                + "Autorise l'app (ou le Terminal) dans Réglages Système > Confidentialité et sécurité > Réseau local."
+                "macOS a refusé presque toutes les connexions avant qu'elles partent sur le réseau. "
+                + "Si tu attendais des serveurs, autorise l'app (ou le Terminal) dans "
+                + "Réglages Système > Confidentialité et sécurité > Réseau local, puis relance le scan."
             )
         }
         return PortScanOutcome(

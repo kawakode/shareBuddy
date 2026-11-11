@@ -206,7 +206,13 @@ final class ScanOptionsTests: XCTestCase {
         result.probeCount = 4
         result.immediateFailures = [EHOSTUNREACH: 4]
         XCTAssertTrue(result.looksBlockedLocally)
-        result.immediateFailures = [EHOSTUNREACH: 2]
+        result.probeCount = 254
+        result.immediateFailures = [EHOSTUNREACH: 252]
+        XCTAssertTrue(result.looksBlockedLocally)
+        result.immediateFailures = [EHOSTUNREACH: 120]
+        XCTAssertFalse(result.looksBlockedLocally)
+        result.immediateFailures = [EHOSTUNREACH: 252]
+        result.open = [1: [2049]]
         XCTAssertFalse(result.looksBlockedLocally)
     }
 }
