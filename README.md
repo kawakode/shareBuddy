@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/shareBuddy-readme.png" alt="ShareMan" width="320">
+  <img src="docs/images/shareman-readme.png" alt="ShareMan" width="320">
 </p>
 
 <p align="center">
