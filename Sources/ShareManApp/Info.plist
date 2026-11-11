@@ -6,6 +6,8 @@
 	<string>fr</string>
 	<key>CFBundleExecutable</key>
 	<string>ShareManApp</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.kawakode.shareman</string>
 	<key>CFBundleInfoDictionaryVersion</key>

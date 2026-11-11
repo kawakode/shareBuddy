@@ -12,6 +12,8 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "scripts/**"
+      - "assets/branding/**"
+      - "Sources/ShareManApp/Info.plist"
   workflow_dispatch:
 
 permissions:
@@ -107,7 +109,8 @@ jobs:
 
       - name: Create DMG
         run: |
-          scripts/make-dmg.sh build/ShareMan.app build/ShareMan.dmg
+          test -s build/ShareMan.app/Contents/Resources/AppIcon.icns
+          sh -x scripts/make-dmg.sh build/ShareMan.app build/ShareMan.dmg
           lipo -info build/ShareMan.app/Contents/MacOS/ShareManApp
           hdiutil verify build/ShareMan.dmg
 

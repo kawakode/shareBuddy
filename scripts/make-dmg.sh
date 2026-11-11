@@ -36,6 +36,14 @@ MNT="$(hdiutil attach -readwrite -noverify -noautoopen "$WORK/rw.dmg" \
 [ -d "$MNT" ] || { echo "Montage de l'image impossible" >&2; exit 1; }
 DISK_NAME="$(basename "$MNT")"
 
+# Volume icon = app icon (best effort: SetFile ships with the Xcode tools).
+if [ -f "$APP/Contents/Resources/AppIcon.icns" ]; then
+    cp "$APP/Contents/Resources/AppIcon.icns" "$MNT/.VolumeIcon.icns"
+    SetFile -c icnC "$MNT/.VolumeIcon.icns" 2>/dev/null || true
+    SetFile -a C "$MNT" 2>/dev/null \
+        || echo "Avertissement : SetFile indisponible, icône de volume non appliquée." >&2
+fi
+
 # Best effort: icon view, big icons, app on the left, Applications on the
 # right. Finder scripting can be unavailable (headless CI without automation
 # rights); the image still works, the window is just not arranged.
@@ -78,12 +86,22 @@ fi
 
 rm -rf "$MNT/.fseventsd"
 sync
-hdiutil detach "$MNT" -quiet || hdiutil detach "$MNT" -quiet -force
+# Finder can keep the volume busy for a moment (icon cache, .DS_Store):
+# retry, then force.
+detached=0
+for _ in 1 2 3 4 5; do
+    if hdiutil detach "$MNT"; then
+        detached=1
+        break
+    fi
+    sleep 2
+done
+[ "$detached" = 1 ] || hdiutil detach "$MNT" -force
 MNT=""
 
 mkdir -p "$(dirname "$DMG")"
 rm -f "$DMG"
-hdiutil convert -quiet "$WORK/rw.dmg" -format UDZO -imagekey zlib-level=9 -o "$DMG"
+hdiutil convert "$WORK/rw.dmg" -format UDZO -imagekey zlib-level=9 -o "$DMG"
 
 if [ -n "${SIGN_IDENTITY:-}" ]; then
     codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
