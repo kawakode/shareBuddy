@@ -1,11 +1,11 @@
 import ArgumentParser
 import Foundation
-import ShareBuddyCore
+import ShareManCore
 
 @main
-struct ShareBuddyCommand: AsyncParsableCommand {
+struct ShareManCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "sharebuddy",
+        commandName: "shareman",
         abstract: "Découvre les partages NFS et SMB du réseau local et les monte sur macOS.",
         version: "0.1.0",
         subcommands: [Scan.self, Shares.self, Mount.self, Mounts.self, Unmount.self],
@@ -131,7 +131,7 @@ struct Scan: AsyncParsableCommand {
             return
         }
         guard !report.isEmpty else {
-            print("\nAucun serveur trouvé." + (deep ? "" : " Essaie « sharebuddy scan --deep » pour un scan NFS approfondi."))
+            print("\nAucun serveur trouvé." + (deep ? "" : " Essaie « shareman scan --deep » pour un scan NFS approfondi."))
             return
         }
         print("")
@@ -172,7 +172,7 @@ struct ServerReport: Encodable, Sendable {
         print("\(title) — \(protocols)")
         for listing in listings {
             if let error = listing.error {
-                let hint = listing.kind == .smb ? " (essaie « sharebuddy shares \(server.address) --smb --user <nom> »)" : ""
+                let hint = listing.kind == .smb ? " (essaie « shareman shares \(server.address) --smb --user <nom> »)" : ""
                 print("    \(listing.kind.displayName) : impossible de lister les partages\(hint)")
                 print("        \(error.replacingOccurrences(of: "\n", with: " "))")
                 continue

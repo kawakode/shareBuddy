@@ -1,8 +1,8 @@
 import AppKit
 import Foundation
-import ShareBuddyCore
+import ShareManCore
 
-/// State of the ShareBuddy window.
+/// State of the ShareMan window.
 @MainActor
 final class AppModel: ObservableObject {
     enum ProtocolFilter: String, CaseIterable, Identifiable {

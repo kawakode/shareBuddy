@@ -1,6 +1,6 @@
 import Foundation
 
-/// Network file-sharing protocols that ShareBuddy knows how to discover and mount.
+/// Network file-sharing protocols that ShareMan knows how to discover and mount.
 public enum ShareProtocol: String, Codable, CaseIterable, Comparable, Sendable {
     case nfs
     case smb
@@ -23,7 +23,7 @@ public enum ShareProtocol: String, Codable, CaseIterable, Comparable, Sendable {
 
     public var displayName: String { rawValue.uppercased() }
 
-    /// NFS sorts before SMB: it is the protocol ShareBuddy prioritises.
+    /// NFS sorts before SMB: it is the protocol ShareMan prioritises.
     public static func < (lhs: ShareProtocol, rhs: ShareProtocol) -> Bool {
         allCases.firstIndex(of: lhs)! < allCases.firstIndex(of: rhs)!
     }
@@ -98,7 +98,7 @@ public struct NetworkShare: Hashable, Codable, Sendable {
     public var url: URL? { ShareURL.make(kind: kind, host: server, path: path) }
 }
 
-public enum ShareBuddyError: LocalizedError, Equatable {
+public enum ShareManError: LocalizedError, Equatable {
     case commandFailed(command: String, status: Int32, message: String)
     case commandTimedOut(command: String)
     case invalidTarget(String)

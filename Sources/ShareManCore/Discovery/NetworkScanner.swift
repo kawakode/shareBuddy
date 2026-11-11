@@ -6,7 +6,7 @@ import Glibc
 #endif
 
 public struct ScanOptions: Sendable {
-    /// Protocols to look for. NFS is ShareBuddy's priority, SMB comes second.
+    /// Protocols to look for. NFS is ShareMan's priority, SMB comes second.
     public var protocols: Set<ShareProtocol> = [.nfs, .smb]
     /// Listen for Bonjour advertisements (`_nfs._tcp`, `_smb._tcp`).
     public var useBonjour = true

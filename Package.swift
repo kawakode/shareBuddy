@@ -2,38 +2,38 @@
 import PackageDescription
 
 let package = Package(
-    name: "ShareBuddy",
+    name: "ShareMan",
     platforms: [.macOS(.v13)],
     products: [
-        .library(name: "ShareBuddyCore", targets: ["ShareBuddyCore"]),
-        .executable(name: "sharebuddy", targets: ["sharebuddy"]),
-        .executable(name: "ShareBuddyApp", targets: ["ShareBuddyApp"]),
+        .library(name: "ShareManCore", targets: ["ShareManCore"]),
+        .executable(name: "shareman", targets: ["shareman"]),
+        .executable(name: "ShareManApp", targets: ["ShareManApp"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
     ],
     targets: [
         .target(
-            name: "ShareBuddyCore",
+            name: "ShareManCore",
             linkerSettings: [
                 .linkedFramework("NetFS", .when(platforms: [.macOS])),
             ]
         ),
         .executableTarget(
-            name: "sharebuddy",
+            name: "shareman",
             dependencies: [
-                "ShareBuddyCore",
+                "ShareManCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .executableTarget(
-            name: "ShareBuddyApp",
-            dependencies: ["ShareBuddyCore"],
+            name: "ShareManApp",
+            dependencies: ["ShareManCore"],
             exclude: ["Info.plist"]
         ),
         .testTarget(
-            name: "ShareBuddyCoreTests",
-            dependencies: ["ShareBuddyCore"]
+            name: "ShareManCoreTests",
+            dependencies: ["ShareManCore"]
         ),
     ]
 )

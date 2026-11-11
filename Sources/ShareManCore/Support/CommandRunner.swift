@@ -64,7 +64,7 @@ public enum CommandRunner {
 
         let commandLine = ([executable] + arguments).joined(separator: " ")
         if timedOut.isSet {
-            throw ShareBuddyError.commandTimedOut(command: commandLine)
+            throw ShareManError.commandTimedOut(command: commandLine)
         }
         return CommandResult(
             status: process.terminationStatus,

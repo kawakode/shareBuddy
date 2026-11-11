@@ -2,12 +2,12 @@ import AppKit
 import SwiftUI
 
 @main
-struct ShareBuddyApp: App {
+struct ShareManApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var model = AppModel()
 
     var body: some Scene {
-        WindowGroup("ShareBuddy") {
+        WindowGroup("ShareMan") {
             ContentView()
                 .environmentObject(model)
                 .frame(minWidth: 760, minHeight: 460)
