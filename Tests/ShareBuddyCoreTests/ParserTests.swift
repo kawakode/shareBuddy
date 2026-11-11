@@ -147,6 +147,72 @@ final class PortScannerTests: XCTestCase {
     func testClosedLocalPortIsNotReported() {
         // Port 1 on loopback is closed on any normal machine: the connection is refused at once.
         let open = PortScanner.scanSync(hosts: [IPv4Subnet.parseAddress("127.0.0.1")!], ports: [1], timeout: 0.5)
-        XCTAssertTrue(open.isEmpty)
+        XCTAssertTrue(open.open.isEmpty)
+    }
+}
+
+final class RPCPortmapperTests: XCTestCase {
+    func testGetPortCallEncoding() {
+        let call = RPCPortmapper.getPortCall(xid: 0x0102_0304, program: 100_003, version: 3, transport: 6)
+        XCTAssertEqual(call.count, 56)
+        XCTAssertEqual(Array(call[0..<4]), [1, 2, 3, 4])
+        // Portmapper program 100000 = 0x000186A0, procedure 3.
+        XCTAssertEqual(Array(call[12..<16]), [0x00, 0x01, 0x86, 0xA0])
+        XCTAssertEqual(Array(call[20..<24]), [0, 0, 0, 3])
+        // Asked program 100003 = 0x000186A3, version 3, TCP.
+        XCTAssertEqual(Array(call[40..<44]), [0x00, 0x01, 0x86, 0xA3])
+        XCTAssertEqual(Array(call[44..<48]), [0, 0, 0, 3])
+        XCTAssertEqual(Array(call[48..<52]), [0, 0, 0, 6])
+    }
+
+    private func words(_ values: [UInt32]) -> [UInt8] {
+        values.flatMap { [UInt8($0 >> 24 & 0xFF), UInt8($0 >> 16 & 0xFF), UInt8($0 >> 8 & 0xFF), UInt8($0 & 0xFF)] }
+    }
+
+    func testParsesSuccessfulReply() {
+        // xid, REPLY, MSG_ACCEPTED, verifier AUTH_NONE len 0, SUCCESS, port 2049
+        let reply = words([42, 1, 0, 0, 0, 0, 2049])
+        let parsed = RPCPortmapper.parseGetPortReply(reply)
+        XCTAssertEqual(parsed?.xid, 42)
+        XCTAssertEqual(parsed?.port, 2049)
+    }
+
+    func testParsesReplyWithVerifierBody() {
+        // Verifier of 5 bytes is padded to 8.
+        let reply = words([7, 1, 0, 1, 5, 0, 0, 0, 2049])
+        XCTAssertEqual(RPCPortmapper.parseGetPortReply(reply)?.port, 2049)
+    }
+
+    func testRejectsDeniedOrTruncatedReplies() {
+        XCTAssertNil(RPCPortmapper.parseGetPortReply(words([1, 1, 1, 0, 0])))      // MSG_DENIED
+        XCTAssertNil(RPCPortmapper.parseGetPortReply(words([1, 0, 0, 0, 0, 0, 0]))) // a CALL, not a REPLY
+        XCTAssertNil(RPCPortmapper.parseGetPortReply(words([1, 1, 0, 0, 0, 1, 0]))) // PROG_UNAVAIL
+        XCTAssertNil(RPCPortmapper.parseGetPortReply([0, 0, 0]))
+    }
+}
+
+final class ScanOptionsTests: XCTestCase {
+    func testDeepScanWidensSubnetsAndTimeouts() {
+        var options = ScanOptions()
+        options.subnets = [IPv4Subnet(cidr: "192.168.138.20/23")!, IPv4Subnet(cidr: "10.1.2.3/16")!]
+        XCTAssertEqual(NetworkScanner.subnetsToScan(options).map(\.description), ["192.168.138.0/23", "10.1.0.0/22"])
+        options.deepNFS = true
+        XCTAssertEqual(NetworkScanner.subnetsToScan(options).map(\.description), ["192.168.138.0/23", "10.1.0.0/20"])
+        XCTAssertGreaterThanOrEqual(options.effectiveTimeout, 1.5)
+    }
+
+    func testBlockedLocallyDetection() {
+        var result = PortScanner.Result()
+        result.probeCount = 4
+        result.immediateFailures = [EHOSTUNREACH: 4]
+        XCTAssertTrue(result.looksBlockedLocally)
+        result.probeCount = 254
+        result.immediateFailures = [EHOSTUNREACH: 252]
+        XCTAssertTrue(result.looksBlockedLocally)
+        result.immediateFailures = [EHOSTUNREACH: 120]
+        XCTAssertFalse(result.looksBlockedLocally)
+        result.immediateFailures = [EHOSTUNREACH: 252]
+        result.open = [1: [2049]]
+        XCTAssertFalse(result.looksBlockedLocally)
     }
 }

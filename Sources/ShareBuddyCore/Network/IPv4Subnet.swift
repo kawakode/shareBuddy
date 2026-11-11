@@ -41,16 +41,26 @@ public struct IPv4Subnet: Hashable, Sendable, CustomStringConvertible {
     /// Host addresses to probe. Subnets larger than `maxPrefix` (e.g. a /16) are
     /// narrowed to the `maxPrefix` block that contains our own address, so that a
     /// scan stays short.
-    public func hostAddresses(maxPrefix: Int = 24) -> [UInt32] {
-        let effective = prefixLength < maxPrefix
-            ? IPv4Subnet(address: address, prefixLength: maxPrefix, interfaceName: interfaceName)
-            : self
+    public func hostAddresses(maxPrefix: Int = 22) -> [UInt32] {
+        let effective = narrowed(to: maxPrefix)
         if effective.prefixLength >= 31 {
             return Array(Set([effective.network, effective.broadcast])).sorted()
         }
         let first = effective.network + 1
         let last = effective.broadcast - 1
         return Array(first...last)
+    }
+
+    /// The block of size `maxPrefix` that contains our address, when this subnet is larger.
+    public func narrowed(to maxPrefix: Int) -> IPv4Subnet {
+        prefixLength < maxPrefix
+            ? IPv4Subnet(address: address, prefixLength: maxPrefix, interfaceName: interfaceName)
+            : self
+    }
+
+    /// Directed broadcast address, if the subnet has one.
+    public var broadcastAddress: UInt32? {
+        prefixLength <= 30 ? broadcast : nil
     }
 
     public static func parseAddress(_ string: String) -> UInt32? {

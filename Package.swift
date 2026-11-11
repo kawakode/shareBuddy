@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .library(name: "ShareBuddyCore", targets: ["ShareBuddyCore"]),
         .executable(name: "sharebuddy", targets: ["sharebuddy"]),
+        .executable(name: "ShareBuddyApp", targets: ["ShareBuddyApp"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0"),
@@ -24,6 +25,11 @@ let package = Package(
                 "ShareBuddyCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
+        ),
+        .executableTarget(
+            name: "ShareBuddyApp",
+            dependencies: ["ShareBuddyCore"],
+            exclude: ["Info.plist"]
         ),
         .testTarget(
             name: "ShareBuddyCoreTests",

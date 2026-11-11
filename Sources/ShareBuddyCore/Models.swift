@@ -33,6 +33,10 @@ public enum ShareProtocol: String, Codable, CaseIterable, Comparable, Sendable {
 public enum DiscoverySource: String, Codable, Comparable, Sendable {
     case bonjour
     case portScan = "port-scan"
+    /// NFS registered with the server's portmapper / rpcbind (deep scan).
+    case rpc
+    /// Added by hand by the user.
+    case manual
 
     public static func < (lhs: DiscoverySource, rhs: DiscoverySource) -> Bool {
         lhs.rawValue < rhs.rawValue

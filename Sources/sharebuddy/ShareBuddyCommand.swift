@@ -63,11 +63,17 @@ struct Scan: AsyncParsableCommand {
     @Flag(name: .customLong("no-shares"), help: "Ne pas lister les exports / partages de chaque serveur.")
     var noShares = false
 
+    @Flag(name: [.customShort("d"), .customLong("deep")], help: "Scan NFS approfondi : sous-réseau entier (jusqu'à /20), délais plus longs et requêtes RPC au portmapper (port 111, UDP et TCP).")
+    var deep = false
+
     @Option(help: "Délai de connexion par adresse, en secondes.")
     var timeout: Double = 0.6
 
     @Option(name: .customLong("bonjour-time"), help: "Durée d'écoute Bonjour, en secondes.")
     var bonjourTime: Double = 3
+
+    @Flag(name: [.customShort("v"), .customLong("verbose")], help: "Afficher des détails de diagnostic.")
+    var verbose = false
 
     @Flag(help: "Sortie JSON.")
     var json = false
@@ -78,6 +84,7 @@ struct Scan: AsyncParsableCommand {
         options.useBonjour = !noBonjour
         options.usePortScan = !noPortScan
         options.connectTimeout = timeout
+        options.deepNFS = deep
         options.bonjourDuration = bonjourTime
         if !subnets.isEmpty {
             options.subnets = try subnets.map { raw in
@@ -96,10 +103,17 @@ struct Scan: AsyncParsableCommand {
             if options.usePortScan {
                 sources.append(scanned.isEmpty ? "aucun sous-réseau" : scanned.map(\.description).joined(separator: ", "))
             }
-            print("Recherche des serveurs \(what) (\(sources.joined(separator: ", ")))…")
+            if deep { sources.append("RPC port 111") }
+            let mode = deep ? " en mode approfondi" : ""
+            print("Recherche des serveurs \(what)\(mode) (\(sources.joined(separator: ", ")))…")
         }
 
-        let servers = await NetworkScanner.scan(options: options)
+        let result = await NetworkScanner.run(options: options)
+        let servers = result.servers
+        if !json {
+            result.warnings.forEach { printError("Attention : \($0)") }
+            if verbose { printError(result.diagnostics) }
+        }
         let protocols = options.protocols
         let listShares = !noShares
         let report = await withTaskGroup(of: ServerReport.self) { group in
@@ -117,7 +131,7 @@ struct Scan: AsyncParsableCommand {
             return
         }
         guard !report.isEmpty else {
-            print("\nAucun serveur trouvé.")
+            print("\nAucun serveur trouvé." + (deep ? "" : " Essaie « sharebuddy scan --deep » pour un scan NFS approfondi."))
             return
         }
         print("")
