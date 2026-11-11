@@ -79,36 +79,36 @@ public enum ShareMounter {
         )
         let paths = (mountPoints?.takeRetainedValue() as? [String]) ?? []
         guard status == 0 else {
-            throw ShareBuddyError.mountFailed(code: status, message: describe(status: status, url: request.url))
+            throw ShareManError.mountFailed(code: status, message: describe(status: status, url: request.url))
         }
         return paths
         #else
-        throw ShareBuddyError.unsupportedPlatform
+        throw ShareManError.unsupportedPlatform
         #endif
     }
 
-    /// Unmounts a volume previously mounted (by ShareBuddy or Finder).
+    /// Unmounts a volume previously mounted (by ShareMan or Finder).
     public static func unmount(path: String, force: Bool = false) async throws {
         #if os(macOS)
         let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
         if force {
             let result = try await CommandRunner.run("/usr/sbin/diskutil", ["unmount", "force", url.path], timeout: 30)
             guard result.status == 0 else {
-                throw ShareBuddyError.unmountFailed(path: url.path, message: result.stderr.isEmpty ? result.stdout : result.stderr)
+                throw ShareManError.unmountFailed(path: url.path, message: result.stderr.isEmpty ? result.stdout : result.stderr)
             }
             return
         }
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             FileManager.default.unmountVolume(at: url, options: [.withoutUI]) { error in
                 if let error {
-                    continuation.resume(throwing: ShareBuddyError.unmountFailed(path: url.path, message: error.localizedDescription))
+                    continuation.resume(throwing: ShareManError.unmountFailed(path: url.path, message: error.localizedDescription))
                 } else {
                     continuation.resume()
                 }
             }
         }
         #else
-        throw ShareBuddyError.unsupportedPlatform
+        throw ShareManError.unsupportedPlatform
         #endif
     }
 
@@ -125,10 +125,10 @@ public enum ShareMounter {
             return "Accès refusé pour \(target) : identifiants ou droits insuffisants."
         case 2: // ENOENT
             return isNFS
-                ? "L'export n'existe pas sur le serveur (\(target)). Liste les exports avec « sharebuddy shares <hôte> »."
+                ? "L'export n'existe pas sur le serveur (\(target)). Liste les exports avec « shareman shares <hôte> »."
                 : "Le partage n'existe pas sur le serveur (\(target))."
         case 17: // EEXIST
-            return "\(target) est déjà monté. Vois « sharebuddy mounts »."
+            return "\(target) est déjà monté. Vois « shareman mounts »."
         case 60: // ETIMEDOUT
             return "Le serveur ne répond pas (\(target))."
         case 61: // ECONNREFUSED

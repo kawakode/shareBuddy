@@ -1,5 +1,5 @@
 import XCTest
-@testable import ShareBuddyCore
+@testable import ShareManCore
 
 final class ShowmountParserTests: XCTestCase {
     func testParsesExportsAndClients() {

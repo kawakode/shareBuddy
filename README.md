@@ -1,6 +1,6 @@
-# shareBuddy
+# ShareMan
 
-shareBuddy trouve les partages réseau **NFS** et **SMB** de ton réseau local et les monte sur macOS, sans `sudo`.
+ShareMan trouve les partages réseau **NFS** et **SMB** de ton réseau local et les monte sur macOS, sans `sudo`.
 
 NFS est le protocole prioritaire : les serveurs NFS sont listés en premier et leurs exports sont affichés directement.
 
@@ -10,13 +10,13 @@ Prérequis : macOS 13 ou plus récent, et Xcode ou les Command Line Tools (`xcod
 
 ```sh
 swift build -c release
-cp .build/release/sharebuddy /usr/local/bin/   # facultatif
+cp .build/release/shareman /usr/local/bin/   # facultatif
 ```
 
 ## Application
 
 ```sh
-scripts/build-app.sh            # crée build/ShareBuddy.app
+scripts/build-app.sh            # crée build/ShareMan.app
 scripts/build-app.sh --install  # et la copie dans /Applications
 ```
 
@@ -24,33 +24,33 @@ La fenêtre liste les serveurs trouvés à gauche et les exports / partages du s
 
 Au premier scan, macOS demande l'autorisation d'accéder au **réseau local** : accepte-la, sinon aucun serveur ne sera trouvé.
 
-Pour un essai rapide sans créer l'app : `swift run ShareBuddyApp`.
+Pour un essai rapide sans créer l'app : `swift run ShareManApp`.
 
 ## Ligne de commande
 
 ```sh
 # Cherche les serveurs NFS et SMB et liste leurs partages (commande par défaut)
-sharebuddy
-sharebuddy scan --nfs                 # uniquement NFS
-sharebuddy scan --subnet 10.0.0.0/24  # un autre sous-réseau
-sharebuddy scan --nfs --deep          # scan NFS approfondi (voir plus bas)
-sharebuddy scan -v                    # avec un diagnostic des connexions
-sharebuddy scan --json                # pour les scripts
+shareman
+shareman scan --nfs                 # uniquement NFS
+shareman scan --subnet 10.0.0.0/24  # un autre sous-réseau
+shareman scan --nfs --deep          # scan NFS approfondi (voir plus bas)
+shareman scan -v                    # avec un diagnostic des connexions
+shareman scan --json                # pour les scripts
 
 # Liste les exports / partages d'un serveur précis
-sharebuddy shares nas.local
-sharebuddy shares nas.local --smb --user bob   # demande le mot de passe si besoin
+shareman shares nas.local
+shareman shares nas.local --smb --user bob   # demande le mot de passe si besoin
 
 # Monte un partage (dans /Volumes par défaut)
-sharebuddy mount nfs://nas.local/volume1/media
-sharebuddy mount nas.local:/volume1/media                # notation NFS classique
-sharebuddy mount smb://nas.local/Public --guest
-sharebuddy mount //bob@nas.local/Photos --ask-password
-sharebuddy mount nas.local:/volume1/media --at ~/NAS/media --read-only
+shareman mount nfs://nas.local/volume1/media
+shareman mount nas.local:/volume1/media                # notation NFS classique
+shareman mount smb://nas.local/Public --guest
+shareman mount //bob@nas.local/Photos --ask-password
+shareman mount nas.local:/volume1/media --at ~/NAS/media --read-only
 
 # Partages montés, démontage
-sharebuddy mounts
-sharebuddy unmount /Volumes/media
+shareman mounts
+shareman unmount /Volumes/media
 ```
 
 ## Fonctionnement
@@ -76,13 +76,13 @@ sharebuddy unmount /Volumes/media
 ## Problèmes courants
 
 - **NFS « accès refusé » avec un serveur Linux** : macOS se connecte depuis un port non privilégié (> 1024). Ajoute l'option `insecure` à l'export dans `/etc/exports`, par exemple `/srv/nfs 192.168.1.0/24(rw,insecure)`, puis `exportfs -ra`. Sur un Synology : *Panneau de configuration > Dossier partagé > Autorisations NFS > Autoriser les connexions depuis des ports non privilégiés*.
-- **Aucun serveur trouvé** : sur macOS 15 et plus, autorise ShareBuddy, ou le Terminal pour la ligne de commande, dans *Réglages Système > Confidentialité et sécurité > Réseau local*. Quand toutes les connexions sont bloquées par le Mac lui-même, shareBuddy l'indique. `sharebuddy scan -v` affiche le détail.
-- **SMB : impossible de lister les partages** : le serveur refuse l'accès invité. Utilise `sharebuddy shares <hôte> --smb --user <nom>`.
+- **Aucun serveur trouvé** : sur macOS 15 et plus, autorise ShareMan, ou le Terminal pour la ligne de commande, dans *Réglages Système > Confidentialité et sécurité > Réseau local*. Quand toutes les connexions sont bloquées par le Mac lui-même, ShareMan l'indique. `shareman scan -v` affiche le détail.
+- **SMB : impossible de lister les partages** : le serveur refuse l'accès invité. Utilise `shareman shares <hôte> --smb --user <nom>`.
 
 ## Structure
 
-- `Sources/ShareBuddyCore` : bibliothèque réutilisable (découverte, listes de partages, montage). Partagée par la CLI et l'app.
-- `Sources/sharebuddy` : l'outil en ligne de commande.
-- `Sources/ShareBuddyApp` : l'application SwiftUI (et son `Info.plist`).
-- `scripts/build-app.sh` : fabrique `ShareBuddy.app`.
-- `Tests/ShareBuddyCoreTests` : tests unitaires (`swift test`).
+- `Sources/ShareManCore` : bibliothèque réutilisable (découverte, listes de partages, montage). Partagée par la CLI et l'app.
+- `Sources/shareman` : l'outil en ligne de commande.
+- `Sources/ShareManApp` : l'application SwiftUI (et son `Info.plist`).
+- `scripts/build-app.sh` : fabrique `ShareMan.app`.
+- `Tests/ShareManCoreTests` : tests unitaires (`swift test`).

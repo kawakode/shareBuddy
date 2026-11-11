@@ -1,4 +1,4 @@
-import ShareBuddyCore
+import ShareManCore
 import SwiftUI
 
 struct ContentView: View {

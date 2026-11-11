@@ -10,7 +10,7 @@ public enum ShareLister {
     public static func nfsExports(host: String, timeout: TimeInterval = 10) async throws -> [NetworkShare] {
         let result = try await CommandRunner.run(showmountPath, ["-e", host], timeout: timeout)
         guard result.status == 0 else {
-            throw ShareBuddyError.commandFailed(
+            throw ShareManError.commandFailed(
                 command: "showmount -e \(host)",
                 status: result.status,
                 message: result.stderr.isEmpty ? result.stdout : result.stderr
@@ -50,7 +50,7 @@ public enum ShareLister {
             timeout: interactive ? max(timeout, 120) : timeout
         )
         guard result.status == 0 else {
-            throw ShareBuddyError.commandFailed(
+            throw ShareManError.commandFailed(
                 command: "smbutil view \(target)",
                 status: result.status,
                 message: result.stderr.isEmpty ? result.stdout : result.stderr

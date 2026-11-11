@@ -1,6 +1,6 @@
 import Foundation
 
-/// Builds and parses the share locations that ShareBuddy accepts.
+/// Builds and parses the share locations that ShareMan accepts.
 ///
 /// Accepted forms:
 /// - `nfs://host/export/path`, `smb://[user@]host/Share` (also `cifs://`)
@@ -42,7 +42,7 @@ public enum ShareURL {
     /// Parses a user-supplied share location into a mountable URL.
     public static func parse(_ raw: String, user: String? = nil) throws -> URL {
         let target = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !target.isEmpty else { throw ShareBuddyError.invalidTarget(raw) }
+        guard !target.isEmpty else { throw ShareManError.invalidTarget(raw) }
 
         if let schemeRange = target.range(of: "://") {
             let scheme = target[..<schemeRange.lowerBound].lowercased()
@@ -50,7 +50,7 @@ public enum ShareURL {
             switch scheme {
             case "nfs": kind = .nfs
             case "smb", "cifs": kind = .smb
-            default: throw ShareBuddyError.invalidTarget(raw)
+            default: throw ShareManError.invalidTarget(raw)
             }
             let rest = String(target[schemeRange.upperBound...])
             return try fromAuthorityAndPath(rest, kind: kind, user: user, raw: raw)
@@ -65,16 +65,16 @@ public enum ShareURL {
             let host = String(target[..<sep.lowerBound])
             let path = String(target[target.index(before: sep.upperBound)...])
             guard !host.isEmpty, let url = make(kind: .nfs, host: host, path: path) else {
-                throw ShareBuddyError.invalidTarget(raw)
+                throw ShareManError.invalidTarget(raw)
             }
             return url
         }
 
-        throw ShareBuddyError.invalidTarget(raw)
+        throw ShareManError.invalidTarget(raw)
     }
 
     private static func fromAuthorityAndPath(_ rest: String, kind: ShareProtocol, user: String?, raw: String) throws -> URL {
-        guard let slash = rest.firstIndex(of: "/") else { throw ShareBuddyError.invalidTarget(raw) }
+        guard let slash = rest.firstIndex(of: "/") else { throw ShareManError.invalidTarget(raw) }
         var authority = String(rest[..<slash])
         let path = String(rest[slash...]).removingPercentEncoding ?? String(rest[slash...])
         var effectiveUser = user
@@ -90,7 +90,7 @@ public enum ShareURL {
         guard !authority.isEmpty, !pathIsEmpty,
               let url = make(kind: kind, host: authority, path: path, user: effectiveUser)
         else {
-            throw ShareBuddyError.invalidTarget(raw)
+            throw ShareManError.invalidTarget(raw)
         }
         return url
     }

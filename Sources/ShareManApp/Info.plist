@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>fr</string>
 	<key>CFBundleExecutable</key>
-	<string>ShareBuddyApp</string>
+	<string>ShareManApp</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.kawakode.sharebuddy</string>
+	<string>com.kawakode.shareman</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ShareBuddy</string>
+	<string>ShareMan</string>
 	<key>CFBundleDisplayName</key>
-	<string>ShareBuddy</string>
+	<string>ShareMan</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,7 +27,7 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>ShareBuddy parcourt le réseau local pour trouver les serveurs NFS et SMB et monter leurs partages.</string>
+	<string>ShareMan parcourt le réseau local pour trouver les serveurs NFS et SMB et monter leurs partages.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_nfs._tcp</string>

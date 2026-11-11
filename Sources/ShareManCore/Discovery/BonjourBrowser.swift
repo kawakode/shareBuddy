@@ -37,7 +37,7 @@ public enum BonjourBrowser {
     /// Collects the services visible during `duration` seconds.
     static func browse(serviceType: String, duration: TimeInterval) async -> [(String, NWEndpoint)] {
         await withCheckedContinuation { continuation in
-            let queue = DispatchQueue(label: "sharebuddy.bonjour.browse")
+            let queue = DispatchQueue(label: "shareman.bonjour.browse")
             let browser = NWBrowser(for: .bonjour(type: serviceType, domain: "local."), using: NWParameters())
             let state = BrowseState()
 
@@ -70,7 +70,7 @@ public enum BonjourBrowser {
     /// Resolves a service endpoint to an IPv4 address by opening (and closing) a TCP connection.
     static func resolve(name: String, type: String, endpoint: NWEndpoint, timeout: TimeInterval) async -> BonjourService? {
         await withCheckedContinuation { continuation in
-            let queue = DispatchQueue(label: "sharebuddy.bonjour.resolve")
+            let queue = DispatchQueue(label: "shareman.bonjour.resolve")
             let parameters = NWParameters.tcp
             if let ip = parameters.defaultProtocolStack.internetProtocol as? NWProtocolIP.Options {
                 ip.version = .v4

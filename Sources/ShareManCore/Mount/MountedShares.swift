@@ -33,7 +33,7 @@ public struct MountedShare: Hashable, Codable, Sendable {
 }
 
 public enum MountedShares {
-    /// Maps a kernel file-system type to a ShareBuddy protocol.
+    /// Maps a kernel file-system type to a ShareMan protocol.
     public static func kind(forFileSystemType type: String) -> ShareProtocol? {
         switch type.lowercased() {
         case "nfs": return .nfs
