@@ -454,3 +454,5 @@ footer .legal { color: #a0a0a0; }
   .guide-body td:first-child { white-space: normal; }
   footer { text-align: center; }
 }
+
+.nw { white-space: nowrap; }

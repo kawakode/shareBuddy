@@ -45,7 +45,7 @@ shareman                                  # cherche les serveurs et liste leurs 
 shareman mount nas.local:/volume1/media   # monte un partage dans /Volumes
 ```
 
-Toutes les commandes et options sont dans le [guide](https://kawakode.github.io/shareBuddy/guide.html#ligne-de-commande).
+L'outil est fourni avec chaque version (`shareman-macos.zip`). Toutes les commandes et options sont dans le [guide](https://kawakode.github.io/shareBuddy/guide.html#ligne-de-commande).
 
 ## Compiler depuis les sources
 
