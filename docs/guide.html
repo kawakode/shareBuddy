@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr" data-title-fr="Guide · ShareMan" data-title-en="Guide · ShareMan">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide · ShareMan</title>
+  <meta name="description" content="Installer ShareMan, l’utiliser en ligne de commande et résoudre les problèmes courants. Installing ShareMan, using it from the command line and fixing common problems.">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="site.js"></script>
+</head>
+<body>
+  <div class="sheet">
+
+    <header class="topbar">
+      <a class="brand" href="./"><img src="images/shareman-logo.png" alt="ShareMan" width="168" height="40"></a>
+      <nav>
+        <a href="./#interface"><span lang="fr">L’application</span><span lang="en">The app</span></a>
+        <a href="./#installation">Installation</a>
+        <a href="guide.html">Guide</a>
+        <a href="https://github.com/kawakode/shareBuddy">GitHub</a>
+        <span class="lang-switch"><a href="#" data-set-lang="fr" hreflang="fr">FR</a><a href="#" data-set-lang="en" hreflang="en">EN</a></span>
+      </nav>
+    </header>
+
+    <div class="guide">
+      <aside class="guide-nav">
+        <ul>
+          <li><b lang="fr">Sommaire</b><b lang="en">Contents</b></li>
+          <li><a href="#installation">Installation</a></li>
+          <li><a href="#ligne-de-commande"><span lang="fr">Ligne de commande</span><span lang="en">Command line</span></a></li>
+          <li><a href="#problemes"><span lang="fr">Problèmes courants</span><span lang="en">Troubleshooting</span></a></li>
+          <li><a href="#fonctionnement"><span lang="fr">Comment ça marche</span><span lang="en">How it works</span></a></li>
+        </ul>
+      </aside>
+
+      <main class="guide-body">
+        <h1>Guide</h1>
+        <p class="sub" lang="fr">Tout ce qui ne tient pas sur la page d’accueil.</p>
+        <p class="sub" lang="en">Everything that doesn’t fit on the home page.</p>
+
+        <!-- Installation -->
+        <section id="installation">
+          <h2>Installation</h2>
+
+          <h3 lang="fr">L’application</h3><h3 lang="en">The app</h3>
+          <p lang="fr">Téléchargez le <code>.dmg</code> de la <a href="https://github.com/kawakode/shareBuddy/releases/latest">dernière version</a>, ouvrez-le et glissez ShareMan dans le dossier Applications. Il faut macOS 13 Ventura ou plus récent.</p>
+          <p lang="en">Download the <code>.dmg</code> from the <a href="https://github.com/kawakode/shareBuddy/releases/latest">latest release</a>, open it and drag ShareMan into the Applications folder. Requires macOS 13 Ventura or later.</p>
+
+          <h3 lang="fr">Depuis les sources</h3><h3 lang="en">From source</h3>
+          <p lang="fr">Il faut Xcode, ou les Command Line Tools (<code>xcode-select --install</code>).</p>
+          <p lang="en">You need Xcode, or the Command Line Tools (<code>xcode-select --install</code>).</p>
+<pre>git clone https://github.com/kawakode/shareBuddy.git
+cd shareBuddy
+
+scripts/build-app.sh --install                <span class="c"># ShareMan.app → /Applications</span>
+swift build -c release                        <span class="c"># shareman (CLI)</span>
+cp .build/release/shareman /usr/local/bin/</pre>
+        </section>
+
+        <!-- CLI -->
+        <section id="ligne-de-commande">
+          <h2 lang="fr">Ligne de commande</h2><h2 lang="en">Command line</h2>
+          <p lang="fr">L’outil <code>shareman</code> fait tout ce que fait l’application, depuis le Terminal. Téléchargez <code class="nw">shareman-macos.zip</code> depuis la <a href="https://github.com/kawakode/shareBuddy/releases/latest">dernière version</a> (ou compilez-le, voir plus haut), puis&nbsp;:</p>
+          <p lang="en">The <code>shareman</code> tool does everything the app does, from the Terminal. Download <code class="nw">shareman-macos.zip</code> from the <a href="https://github.com/kawakode/shareBuddy/releases/latest">latest release</a> (or build it, see above), then:</p>
+
+<pre>cd ~/Downloads &amp;&amp; unzip shareman-macos.zip
+sudo mv shareman /usr/local/bin/
+<span class="c" lang="fr"># si macOS bloque l’outil :</span><span class="c" lang="en"># if macOS blocks the tool:</span>
+xattr -d com.apple.quarantine /usr/local/bin/shareman</pre>
+          <p lang="fr"><code>shareman help &lt;commande&gt;</code> détaille chaque option.</p>
+          <p lang="en"><code>shareman help &lt;command&gt;</code> details every option. Its messages are in French for now.</p>
+
+          <table>
+            <thead><tr><th lang="fr">Commande</th><th lang="en">Command</th><th lang="fr">Rôle</th><th lang="en">What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>shareman scan</code></td><td lang="fr">Cherche les serveurs NFS et SMB et liste leurs partages. Commande par défaut.</td><td lang="en">Finds NFS and SMB servers and lists their shares. The default command.</td></tr>
+              <tr><td><code>shareman shares &lt;<span lang="fr">hôte</span><span lang="en">host</span>&gt;</code></td><td lang="fr">Liste les exports et partages d’un serveur précis.</td><td lang="en">Lists the exports and shares of one server.</td></tr>
+              <tr><td><code>shareman mount &lt;<span lang="fr">partage</span><span lang="en">share</span>&gt;</code></td><td lang="fr">Monte un partage, dans <code>/Volumes</code> par défaut.</td><td lang="en">Mounts a share, in <code>/Volumes</code> by default.</td></tr>
+              <tr><td><code>shareman mounts</code></td><td lang="fr">Liste les partages réseau montés.</td><td lang="en">Lists the mounted network shares.</td></tr>
+              <tr><td><code>shareman unmount &lt;<span lang="fr">dossier</span><span lang="en">folder</span>&gt;</code></td><td lang="fr">Démonte un partage (<code>--force</code> si des fichiers sont ouverts).</td><td lang="en">Unmounts a share (<code>--force</code> if files are open).</td></tr>
+            </tbody>
+          </table>
+
+          <h3 lang="fr">Chercher</h3><h3 lang="en">Find</h3>
+<pre>shareman                              <span class="c"># NFS + SMB</span>
+shareman scan --nfs                   <span class="c" lang="fr"># NFS seulement</span><span class="c" lang="en"># NFS only</span>
+shareman scan --subnet 10.0.0.0/24    <span class="c" lang="fr"># un autre sous-réseau</span><span class="c" lang="en"># another subnet</span>
+shareman scan --nfs --deep            <span class="c" lang="fr"># scan NFS approfondi</span><span class="c" lang="en"># deep NFS scan</span>
+shareman scan -v                      <span class="c" lang="fr"># diagnostic des connexions</span><span class="c" lang="en"># connection diagnostics</span>
+shareman scan --json                  <span class="c" lang="fr"># pour les scripts</span><span class="c" lang="en"># for scripts</span></pre>
+
+          <h3 lang="fr">Lister</h3><h3 lang="en">List</h3>
+<pre>shareman shares nas.local
+shareman shares nas.local --smb --user bob    <span class="c" lang="fr"># demande le mot de passe si besoin</span><span class="c" lang="en"># asks for the password if needed</span>
+shareman shares nas.local --smb --hidden      <span class="c" lang="fr"># avec IPC$, C$…</span><span class="c" lang="en"># include IPC$, C$…</span></pre>
+
+          <h3 lang="fr">Monter et démonter</h3><h3 lang="en">Mount and unmount</h3>
+<pre>shareman mount nfs://nas.local/volume1/media
+shareman mount nas.local:/volume1/media                 <span class="c" lang="fr"># notation NFS classique</span><span class="c" lang="en"># classic NFS form</span>
+shareman mount smb://nas.local/Public --guest
+shareman mount //bob@nas.local/Photos --ask-password
+shareman mount nas.local:/volume1/media --at ~/NAS/media --read-only
+
+shareman mounts
+shareman unmount /Volumes/media</pre>
+
+          <h3 lang="fr">Options du scan</h3><h3 lang="en">Scan options</h3>
+          <table>
+            <tbody>
+              <tr><td><code>--nfs</code>, <code>--smb</code></td><td lang="fr">Un seul protocole.</td><td lang="en">One protocol only.</td></tr>
+              <tr><td><code>--subnet</code></td><td lang="fr">Sous-réseau à scanner, répétable. Par défaut, celui de chaque interface active.</td><td lang="en">Subnet to scan, repeatable. Defaults to each active interface’s subnet.</td></tr>
+              <tr><td><code>-d</code>, <code>--deep</code></td><td lang="fr">Scan NFS approfondi (voir plus bas).</td><td lang="en">Deep NFS scan (see below).</td></tr>
+              <tr><td><code>--timeout</code></td><td lang="fr">Délai de connexion par adresse, en secondes (0,6 par défaut).</td><td lang="en">Connection timeout per address, in seconds (0.6 by default).</td></tr>
+              <tr><td><code>--bonjour-time</code></td><td lang="fr">Durée d’écoute Bonjour, en secondes (3 par défaut).</td><td lang="en">How long to listen for Bonjour, in seconds (3 by default).</td></tr>
+              <tr><td><code>--no-bonjour</code>, <code>--no-portscan</code></td><td lang="fr">Désactive une des deux méthodes de découverte.</td><td lang="en">Turns off one of the two discovery methods.</td></tr>
+              <tr><td><code>--no-shares</code></td><td lang="fr">Liste les serveurs sans leurs partages.</td><td lang="en">Lists servers without their shares.</td></tr>
+              <tr><td><code>-v</code>, <code>--json</code></td><td lang="fr">Diagnostic détaillé, ou sortie JSON.</td><td lang="en">Detailed diagnostics, or JSON output.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section id="problemes">
+          <h2 lang="fr">Problèmes courants</h2><h2 lang="en">Troubleshooting</h2>
+
+          <h3 lang="fr">macOS refuse d’ouvrir ShareMan</h3><h3 lang="en">macOS won’t open ShareMan</h3>
+          <p lang="fr">Si votre version n’est pas signée par un développeur identifié par Apple, macOS la bloque au premier lancement. Après une première tentative d’ouverture, allez dans <em>Réglages Système › Confidentialité et sécurité</em> et cliquez sur <em>Ouvrir quand même</em>. Jusqu’à macOS 14, un clic droit sur l’app puis <em>Ouvrir</em> suffit.</p>
+          <p lang="en">If your copy isn’t signed by an Apple-identified developer, macOS blocks it on first launch. After a first attempt to open it, go to <em>System Settings › Privacy &amp; Security</em> and click <em>Open Anyway</em>. Up to macOS 14, right-clicking the app and choosing <em>Open</em> is enough.</p>
+
+          <h3 lang="fr">Aucun serveur trouvé</h3><h3 lang="en">No server found</h3>
+          <p lang="fr">Autorisez ShareMan (ou le Terminal, pour la ligne de commande) dans <em>Réglages Système › Confidentialité et sécurité › Réseau local</em>. <code>shareman scan -v</code> indique si c’est le Mac qui bloque les connexions. Si le serveur ne s’annonce pas, essayez le scan approfondi, ou ajoutez-le à la main par son adresse IP.</p>
+          <p lang="en">Allow ShareMan (or the Terminal, for the command line) in <em>System Settings › Privacy &amp; Security › Local Network</em>. <code>shareman scan -v</code> tells you if the Mac itself blocks the connections. If the server doesn’t announce itself, try the deep scan, or add it by hand with its IP address.</p>
+
+          <h3 lang="fr">NFS : « accès refusé » avec un serveur Linux</h3><h3 lang="en">NFS: “access denied” with a Linux server</h3>
+          <p lang="fr">macOS se connecte depuis un port non privilégié. Ajoutez l’option <code>insecure</code> à l’export dans <code>/etc/exports</code>, puis lancez <code>exportfs -ra</code>&nbsp;:</p>
+          <p lang="en">macOS connects from a non-privileged port. Add the <code>insecure</code> option to the export in <code>/etc/exports</code>, then run <code>exportfs -ra</code>:</p>
+<pre>/srv/nfs 192.168.1.0/24(rw,insecure)</pre>
+          <p lang="fr">Sur un Synology : <em>Dossier partagé › Autorisations NFS › Autoriser les connexions depuis des ports non privilégiés</em>.</p>
+          <p lang="en">On a Synology: <em>Shared Folder › NFS Permissions › Allow connections from non-privileged ports</em>.</p>
+
+          <h3 lang="fr">SMB : impossible de lister les partages</h3><h3 lang="en">SMB: can’t list the shares</h3>
+          <p lang="fr">Le serveur refuse l’accès invité. Dans l’app, utilisez <em>Se connecter avec le Finder…</em>&nbsp;; en ligne de commande, indiquez un utilisateur&nbsp;: <code>shareman shares &lt;hôte&gt; --smb --user &lt;nom&gt;</code>.</p>
+          <p lang="en">The server refuses guest access. In the app, use <em>Se connecter avec le Finder…</em> (Connect with the Finder); on the command line, give a user name: <code>shareman shares &lt;host&gt; --smb --user &lt;name&gt;</code>.</p>
+        </section>
+
+        <!-- How it works -->
+        <section id="fonctionnement">
+          <h2 lang="fr">Comment ça marche</h2><h2 lang="en">How it works</h2>
+          <ul lang="fr">
+            <li><strong>Bonjour</strong> : ShareMan écoute les annonces <code>_nfs._tcp</code> et <code>_smb._tcp</code> (Synology, QNAP, TrueNAS, Mac…).</li>
+            <li><strong>Scan du sous-réseau</strong> : connexion TCP aux ports 2049 (NFS) et 445 (SMB) de chaque adresse, sur chaque interface active. Au-delà d’un /22, seul le /22 du Mac est scanné. Compte 1 à 3 secondes.</li>
+            <li><strong>Scan approfondi</strong> : jusqu’à un /20, délai de 1,5 s, et interrogation de rpcbind (port 111, requête <code>GETPORT</code> en UDP et TCP). Un serveur qui déclare NFS dans rpcbind est retenu même si le port 2049 ne répond pas.</li>
+            <li><strong>Partages</strong> : <code>showmount -e</code> pour NFS, <code>smbutil view</code> pour SMB, les outils fournis avec macOS.</li>
+            <li><strong>Montage</strong> : le framework NetFS d’Apple, le même mécanisme que <em>Aller › Se connecter au serveur</em> dans le Finder. Les mots de passe du trousseau sont utilisés automatiquement.</li>
+          </ul>
+          <ul lang="en">
+            <li><strong>Bonjour</strong>: ShareMan listens for <code>_nfs._tcp</code> and <code>_smb._tcp</code> announcements (Synology, QNAP, TrueNAS, Macs…).</li>
+            <li><strong>Subnet scan</strong>: a TCP connection to ports 2049 (NFS) and 445 (SMB) of every address, on every active interface. Beyond a /22, only the Mac’s own /22 is scanned. Takes 1 to 3 seconds.</li>
+            <li><strong>Deep scan</strong>: up to a /20, a 1.5 s timeout, and rpcbind queries (port 111, <code>GETPORT</code> over UDP and TCP). A server that registers NFS with rpcbind is kept even if port 2049 doesn’t answer.</li>
+            <li><strong>Shares</strong>: <code>showmount -e</code> for NFS, <code>smbutil view</code> for SMB, the tools that ship with macOS.</li>
+            <li><strong>Mounting</strong>: Apple’s NetFS framework, the same mechanism as <em>Go › Connect to Server</em> in the Finder. Keychain passwords are used automatically.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>ShareMan · <a href="https://github.com/kawakode/shareBuddy/releases/latest"><span lang="fr">Télécharger</span><span lang="en">Download</span></a> · <a href="guide.html">Guide</a> · <a href="https://github.com/kawakode/shareBuddy"><span lang="fr">Code source</span><span lang="en">Source code</span></a></p>
+    <p class="legal" lang="fr">Mac, macOS et Finder sont des marques d’Apple Inc. ShareMan n’est pas affilié à Apple.</p>
+    <p class="legal" lang="en">Mac, macOS and Finder are trademarks of Apple Inc. ShareMan is not affiliated with Apple.</p>
+  </footer>
+</body>
+</html>
