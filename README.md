@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/shareman-readme.png" alt="ShareMan" width="320">
+  <img src="docs/images/shareBuddy-readme.png" alt="ShareMan" width="320">
 </p>
 
 <p align="center">
@@ -8,9 +8,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/kawakode/shareBuddy/releases/latest"><strong>Télécharger</strong></a> ·
-  <a href="https://kawakode.github.io/shareBuddy/">Site web</a> ·
-  <a href="https://kawakode.github.io/shareBuddy/guide.html">Guide</a>
+  <a href="https://github.com/kawakode/shareman/releases/latest"><strong>Télécharger</strong></a> ·
+  <a href="https://shareman.kawa.zip/">Site web</a> ·
+  <a href="https://shareman.kawa.zip/guide.html">Guide</a>
 </p>
 
 ---
@@ -24,7 +24,7 @@
 
 ## Installation
 
-1. Téléchargez le `.dmg` de la [dernière version](https://github.com/kawakode/shareBuddy/releases/latest).
+1. Téléchargez le `.dmg` de la [dernière version](https://github.com/kawakode/shareman/releases/latest).
 2. Ouvrez-le et glissez ShareMan dans le dossier **Applications**.
 3. Au premier scan, macOS demande l'accès au **réseau local** : acceptez, sinon aucun serveur ne sera trouvé.
 
@@ -45,7 +45,7 @@ shareman                                  # cherche les serveurs et liste leurs 
 shareman mount nas.local:/volume1/media   # monte un partage dans /Volumes
 ```
 
-L'outil est fourni avec chaque version (`shareman-macos.zip`). Toutes les commandes et options sont dans le [guide](https://kawakode.github.io/shareBuddy/guide.html#ligne-de-commande).
+L'outil est fourni avec chaque version (`shareman-macos.zip`). Toutes les commandes et options sont dans le [guide](https://shareman.kawa.zip/guide.html#ligne-de-commande).
 
 ## Compiler depuis les sources
 
@@ -59,7 +59,7 @@ swift test                       # les tests
 
 ## Problèmes courants
 
-Voir le [guide](https://kawakode.github.io/shareBuddy/guide.html#problemes) : app bloquée par macOS, aucun serveur trouvé, « accès refusé » en NFS, partages SMB invisibles.
+Voir le [guide](https://shareman.kawa.zip/guide.html#problemes) : app bloquée par macOS, aucun serveur trouvé, « accès refusé » en NFS, partages SMB invisibles.
 
 ## Structure du projet
 
