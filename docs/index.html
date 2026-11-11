@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShareMan · Vos partages réseau sur Mac</title>
+  <meta name="description" content="ShareMan trouve les partages NFS et SMB de votre réseau local et les monte sur votre Mac en un clic.">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="sheet">
+
+    <header class="topbar">
+      <a class="brand" href="#"><img src="images/shareman-logo.png" alt="ShareMan" width="168" height="40"></a>
+      <nav>
+        <a href="#fonctionnalites">Fonctionnalités</a>
+        <a href="#utilisation">Utilisation</a>
+        <a href="#installation">Installation</a>
+        <a href="https://github.com/kawakode/shareBuddy">GitHub</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="icon-stage">
+        <img class="icon" src="images/shareman-icon.png" alt="" width="200" height="200">
+        <img class="icon reflection" src="images/shareman-icon.png" alt="" width="200" height="200" aria-hidden="true">
+      </div>
+      <h1>Vos partages réseau.<br>Montés en un clic.</h1>
+      <p class="lead">ShareMan trouve les serveurs NFS et SMB de votre réseau local <br class="wide">et monte leurs partages sur votre Mac. Sans <code>sudo</code>, sans configuration.</p>
+      <p class="actions">
+        <a class="button" href="#installation">Installer ShareMan</a>
+        <a class="more" href="https://github.com/kawakode/shareBuddy">Voir le code source ›</a>
+      </p>
+      <p class="requirements">Pour macOS 13 Ventura ou plus récent.</p>
+    </section>
+
+    <section id="fonctionnalites" class="features">
+      <article>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="21" cy="21" r="13"/><path d="M30.5 30.5 42 42"/></svg>
+        <h2>Il trouve.</h2>
+        <p>Bonjour et un scan rapide du sous-réseau repèrent vos serveurs en quelques secondes. NFS d’abord, SMB ensuite.</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 13h32M8 24h32M8 35h32"/><circle cx="4" cy="13" r="1"/><circle cx="4" cy="24" r="1"/><circle cx="4" cy="35" r="1"/></svg>
+        <h2>Il liste.</h2>
+        <p>Les exports NFS et les partages SMB de chaque serveur s’affichent aussitôt, avec les clients autorisés.</p>
+      </article>
+      <article>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="14" width="38" height="20" rx="4"/><path d="M12 24h12"/><circle cx="36" cy="24" r="1.5"/></svg>
+        <h2>Il monte.</h2>
+        <p>Un clic, et le partage apparaît dans <code>/Volumes</code>, comme avec le Finder. Le trousseau fournit les mots de passe.</p>
+      </article>
+    </section>
+
+    <section id="utilisation" class="usage">
+      <div class="usage-text">
+        <h2>Une fenêtre. <br>Ou une ligne de commande.</h2>
+        <p>L’application affiche les serveurs à gauche et leurs partages à droite. Choisissez, cliquez sur <strong>Monter</strong>, c’est tout.</p>
+        <p>Vous préférez le Terminal&nbsp;? L’outil <code>shareman</code> fait la même chose, et sait aussi répondre en JSON pour vos scripts.</p>
+        <p>Un serveur NFS discret qui ne s’annonce pas&nbsp;? Le <strong>scan approfondi</strong> interroge directement rpcbind pour le débusquer.</p>
+      </div>
+      <figure class="terminal" aria-label="Exemple dans le Terminal">
+        <div class="titlebar"><span></span><span></span><span></span><b>shareman</b></div>
+<pre><span class="prompt">$</span> shareman
+<span class="dim">Recherche des serveurs NFS + SMB (Bonjour, 192.168.1.0/24)…</span>
+
+● nas.local (192.168.1.20) — NFS, SMB
+    NFS  nfs://192.168.1.20/volume1/media
+    SMB  smb://192.168.1.20/Public
+
+<span class="prompt">$</span> shareman mount nas.local:/volume1/media
+<span class="dim">Montage de nfs://nas.local/volume1/media…</span>
+Monté sur /Volumes/media</pre>
+      </figure>
+    </section>
+
+    <section id="installation" class="install">
+      <h2>Installation</h2>
+      <p class="sub">Il vous faut Xcode, ou simplement les Command Line Tools (<code>xcode-select --install</code>).</p>
+      <ol>
+        <li>
+          <h3>Récupérez le code</h3>
+          <pre>git clone https://github.com/kawakode/shareBuddy.git
+cd shareBuddy</pre>
+        </li>
+        <li>
+          <h3>Installez l’application</h3>
+          <pre>scripts/build-app.sh --install</pre>
+          <p>ShareMan arrive dans le dossier Applications.</p>
+        </li>
+        <li>
+          <h3>Autorisez le réseau local</h3>
+          <p>Au premier scan, macOS vous demande l’accès au réseau local. Acceptez, sinon aucun serveur ne sera trouvé.</p>
+        </li>
+      </ol>
+      <p class="cli-note">Pour l’outil en ligne de commande&nbsp;: <code>swift build -c release</code>, puis copiez <code>.build/release/shareman</code> dans <code>/usr/local/bin</code>.</p>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>ShareMan · <a href="https://github.com/kawakode/shareBuddy">Code source sur GitHub</a> · <a href="https://github.com/kawakode/shareBuddy#problèmes-courants">Aide</a></p>
+    <p class="legal">Mac, macOS et Finder sont des marques d’Apple Inc. ShareMan n’est pas affilié à Apple.</p>
+  </footer>
+</body>
+</html>
