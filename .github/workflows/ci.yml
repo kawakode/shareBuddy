@@ -40,10 +40,10 @@ jobs:
           BIN="$(swift build --show-bin-path)/shareman"
           DIR="$(mktemp -d)/ShareManFavoriteTest"
           mkdir -p "$DIR"
-          echo "--- before"; "$BIN" favorite list
+          echo "--- before"; "$BIN" favorite list -v
           "$BIN" favorite add "$DIR"
-          echo "--- after add"; "$BIN" favorite list
+          echo "--- after add"; "$BIN" favorite list -v
           "$BIN" favorite list | grep -q "ShareManFavoriteTest"
           "$BIN" favorite remove "$DIR"
-          echo "--- after remove"; "$BIN" favorite list
+          echo "--- after remove"; "$BIN" favorite list -v
           ! "$BIN" favorite list | grep -q "ShareManFavoriteTest"

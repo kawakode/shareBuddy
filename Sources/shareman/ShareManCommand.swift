@@ -434,8 +434,15 @@ struct Favorite: ParsableCommand {
         @Flag(help: "Sortie JSON.")
         var json = false
 
+        @Flag(name: [.customShort("v"), .customLong("verbose")], help: "Afficher le nombre total d'éléments, accessibles ou non.")
+        var verbose = false
+
         func run() throws {
             let paths = FinderFavorites.paths()
+            if verbose {
+                let total = FinderFavorites.itemCount().map(String.init) ?? "liste illisible"
+                printError("Favoris : \(total) élément(s), \(paths.count) accessible(s).")
+            }
             if json {
                 try printJSON(paths)
             } else if paths.isEmpty {

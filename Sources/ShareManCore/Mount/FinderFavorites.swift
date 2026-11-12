@@ -79,12 +79,7 @@ public enum FinderFavorites {
         }
 
         let url = URL(fileURLWithPath: target, isDirectory: true) as CFURL
-        let inserted = LSSharedFileListInsertItemURL(
-            list,
-            kLSSharedFileListItemLast.takeUnretainedValue(),
-            nil, nil, url, nil, nil
-        )
-        guard inserted != nil else { throw FinderFavoritesError.refused(path) }
+        guard insertAtEnd(list: list, url: url) else { throw FinderFavoritesError.refused(path) }
 
         // When the list can be read, trust what it says rather than the return value.
         if before != nil, !waitUntil({ paths(in: list).contains(target) }) {
@@ -118,7 +113,51 @@ public enum FinderFavorites {
         #endif
     }
 
+    /// Number of items in the Favorites, resolvable or not; nil if the list cannot be read.
+    public static func itemCount() -> Int? {
+        #if os(macOS)
+        guard let list = favoritesList() else { return nil }
+        return snapshot(of: list)?.count
+        #else
+        return nil
+        #endif
+    }
+
     #if os(macOS)
+    private typealias InsertItemURLFunction = @convention(c) (
+        UnsafeRawPointer,   // LSSharedFileListRef inList
+        UnsafeRawPointer?,  // LSSharedFileListItemRef insertAfterThisItem
+        UnsafeRawPointer?,  // CFStringRef inDisplayName
+        UnsafeRawPointer?,  // IconRef inIconRef
+        UnsafeRawPointer,   // CFURLRef inURL
+        UnsafeRawPointer?,  // CFDictionaryRef inPropertiesToSet
+        UnsafeRawPointer?   // CFArrayRef inPropertiesToClear
+    ) -> UnsafeRawPointer?  // LSSharedFileListItemRef, retained
+
+    /// `kLSSharedFileListItemLast` is a sentinel, not a real object: handing it to
+    /// Swift as an `LSSharedFileListItem` makes ARC retain it and crash. So both
+    /// the sentinel and the function are reached as raw pointers.
+    private static func insertAtEnd(list: LSSharedFileList, url: CFURL) -> Bool {
+        let handle = UnsafeMutableRawPointer(bitPattern: -2) // RTLD_DEFAULT
+        guard let function = dlsym(handle, "LSSharedFileListInsertItemURL"),
+              let sentinelAddress = dlsym(handle, "kLSSharedFileListItemLast")
+        else { return false }
+        let insert = unsafeBitCast(function, to: InsertItemURLFunction.self)
+        let last = sentinelAddress.load(as: UnsafeRawPointer?.self)
+
+        let item = withExtendedLifetime((list, url)) {
+            insert(
+                Unmanaged.passUnretained(list).toOpaque(),
+                last, nil, nil,
+                Unmanaged.passUnretained(url).toOpaque(),
+                nil, nil
+            )
+        }
+        guard let item else { return false }
+        Unmanaged<LSSharedFileListItem>.fromOpaque(item).release()
+        return true
+    }
+
     private static func favoritesList() -> LSSharedFileList? {
         LSSharedFileListCreate(nil, kLSSharedFileListFavoriteItems.takeUnretainedValue(), nil)?.takeRetainedValue()
     }
