@@ -84,7 +84,7 @@ public enum FinderFavorites {
             kLSSharedFileListItemLast.takeUnretainedValue(),
             nil, nil, url, nil, nil
         )
-        guard inserted?.takeRetainedValue() != nil else { throw FinderFavoritesError.refused(path) }
+        guard inserted != nil else { throw FinderFavoritesError.refused(path) }
 
         // When the list can be read, trust what it says rather than the return value.
         if before != nil, !waitUntil({ paths(in: list).contains(target) }) {
