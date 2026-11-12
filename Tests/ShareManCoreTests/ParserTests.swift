@@ -216,3 +216,15 @@ final class ScanOptionsTests: XCTestCase {
         XCTAssertFalse(result.looksBlockedLocally)
     }
 }
+
+final class FinderFavoritesPathTests: XCTestCase {
+    func testNormalizedPathDropsTrailingSlashAndDots() {
+        XCTAssertEqual(FinderFavorites.normalizedPath("/Volumes/media/"), "/Volumes/media")
+        XCTAssertEqual(FinderFavorites.normalizedPath("/Volumes/./media//"), "/Volumes/media")
+        XCTAssertEqual(FinderFavorites.normalizedPath("/"), "/")
+    }
+
+    func testNormalizedPathExpandsTilde() {
+        XCTAssertEqual(FinderFavorites.normalizedPath("~"), FinderFavorites.normalizedPath(NSHomeDirectory()))
+    }
+}

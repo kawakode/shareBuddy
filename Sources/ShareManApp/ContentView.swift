@@ -1,3 +1,4 @@
+import AppKit
 import ShareManCore
 import SwiftUI
 
@@ -22,6 +23,10 @@ struct ContentView: View {
             Alert(title: Text(item.title), message: Text(item.message))
         }
         .onAppear { model.refreshMounts() }
+        // Favorites may have been edited in Finder while ShareMan was in the background.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await model.refreshFavorites() }
+        }
     }
 
     // MARK: Sidebar
@@ -178,6 +183,8 @@ struct MountedRow: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Ouvrir dans le Finder")
+                FavoriteButton(path: share.mountPoint)
+                    .buttonStyle(.borderless)
                 Button {
                     Task { await model.unmount(share) }
                 } label: {
@@ -187,6 +194,23 @@ struct MountedRow: View {
                 .help("Démonter")
             }
         }
+    }
+}
+
+/// Star that adds a mounted share to the Finder sidebar Favorites, or removes it.
+struct FavoriteButton: View {
+    @EnvironmentObject private var model: AppModel
+    let path: String
+
+    var body: some View {
+        let isFavorite = model.isFavorite(path)
+        Button {
+            Task { await model.toggleFavorite(path) }
+        } label: {
+            Image(systemName: isFavorite ? "star.fill" : "star")
+                .foregroundStyle(isFavorite ? Color.yellow : Color.secondary)
+        }
+        .help(isFavorite ? "Retirer des favoris du Finder" : "Ajouter aux favoris du Finder")
     }
 }
 
@@ -375,6 +399,8 @@ struct ShareRow: View {
             if isBusy {
                 ProgressView().controlSize(.small)
             } else if let mounted {
+                FavoriteButton(path: mounted.mountPoint)
+                    .buttonStyle(.borderless)
                 Button("Ouvrir") { model.reveal(mounted.mountPoint) }
                 Button("Démonter") { Task { await model.unmount(mounted) } }
             } else {

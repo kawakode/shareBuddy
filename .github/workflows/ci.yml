@@ -1,0 +1,49 @@
+name: CI
+
+# Builds and tests every pull request on macOS.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          swift --version
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      # The Finder favorites API is deprecated: check that macOS still honours
+      # it on the runner. Informative only, since runners may lack a full
+      # Finder session.
+      - name: Finder favorites smoke test
+        continue-on-error: true
+        run: |
+          BIN="$(swift build --show-bin-path)/shareman"
+          DIR="$(mktemp -d)/ShareManFavoriteTest"
+          mkdir -p "$DIR"
+          echo "--- before"; "$BIN" favorite list -v
+          "$BIN" favorite add "$DIR"
+          echo "--- after add"; "$BIN" favorite list -v
+          "$BIN" favorite list | grep -q "ShareManFavoriteTest"
+          "$BIN" favorite remove "$DIR"
+          echo "--- after remove"; "$BIN" favorite list -v
+          ! "$BIN" favorite list | grep -q "ShareManFavoriteTest"

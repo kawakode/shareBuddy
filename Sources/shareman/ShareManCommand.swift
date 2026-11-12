@@ -8,7 +8,7 @@ struct ShareManCommand: AsyncParsableCommand {
         commandName: "shareman",
         abstract: "Découvre les partages NFS et SMB du réseau local et les monte sur macOS.",
         version: "0.1.0",
-        subcommands: [Scan.self, Shares.self, Mount.self, Mounts.self, Unmount.self],
+        subcommands: [Scan.self, Shares.self, Mount.self, Mounts.self, Unmount.self, Favorite.self],
         defaultSubcommand: Scan.self
     )
 }
@@ -360,6 +360,96 @@ struct Unmount: AsyncParsableCommand {
         } catch {
             printError(error.localizedDescription)
             throw ExitCode.failure
+        }
+    }
+}
+
+// MARK: - favorite
+
+struct Favorite: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Gère les favoris de la barre latérale du Finder.",
+        discussion: """
+        Exemples :
+          shareman favorite add /Volumes/media
+          shareman favorite remove /Volumes/media
+          shareman favorite list
+        """,
+        subcommands: [Add.self, Remove.self, List.self],
+        defaultSubcommand: List.self
+    )
+
+    struct Add: ParsableCommand {
+        static let configuration = CommandConfiguration(
+            abstract: "Ajoute un dossier (par exemple un partage monté) aux favoris du Finder."
+        )
+
+        @Argument(help: "Dossier à ajouter (ex. /Volumes/media).")
+        var path: String
+
+        func run() throws {
+            do {
+                switch try FinderFavorites.add(path: path) {
+                case .added: print("Ajouté aux favoris du Finder : \(path)")
+                case .alreadyPresent: print("Déjà dans les favoris du Finder : \(path)")
+                }
+            } catch {
+                printError(error.localizedDescription)
+                if case FinderFavoritesError.refused = error {
+                    printError(FinderFavoritesError.manualHint)
+                    printError("Pour sélectionner le dossier dans le Finder : open -R \"\(path)\"")
+                }
+                throw ExitCode.failure
+            }
+        }
+    }
+
+    struct Remove: ParsableCommand {
+        static let configuration = CommandConfiguration(
+            abstract: "Retire un dossier des favoris du Finder."
+        )
+
+        @Argument(help: "Dossier à retirer (ex. /Volumes/media).")
+        var path: String
+
+        func run() throws {
+            do {
+                if try FinderFavorites.remove(path: path) {
+                    print("Retiré des favoris du Finder : \(path)")
+                } else {
+                    print("Ce dossier n'est pas dans les favoris du Finder : \(path)")
+                }
+            } catch {
+                printError(error.localizedDescription)
+                throw ExitCode.failure
+            }
+        }
+    }
+
+    struct List: ParsableCommand {
+        static let configuration = CommandConfiguration(
+            abstract: "Liste les favoris du Finder accessibles en ce moment."
+        )
+
+        @Flag(help: "Sortie JSON.")
+        var json = false
+
+        @Flag(name: [.customShort("v"), .customLong("verbose")], help: "Afficher le nombre total d'éléments, accessibles ou non.")
+        var verbose = false
+
+        func run() throws {
+            let paths = FinderFavorites.paths()
+            if verbose {
+                let total = FinderFavorites.itemCount().map(String.init) ?? "liste illisible"
+                printError("Favoris : \(total) élément(s), \(paths.count) accessible(s).")
+            }
+            if json {
+                try printJSON(paths)
+            } else if paths.isEmpty {
+                print("Aucun favori lisible dans la barre latérale du Finder.")
+            } else {
+                paths.forEach { print($0) }
+            }
         }
     }
 }
