@@ -40,6 +40,8 @@ final class AppModel: ObservableObject {
     @Published var selectedServerID: String?
     @Published var listings: [String: [ShareProtocol: ListingState]] = [:]
     @Published var mounted: [MountedShare] = []
+    /// Normalized paths currently in the Finder sidebar Favorites.
+    @Published var favorites: Set<String> = []
 
     @Published var filter: ProtocolFilter = .both
     @Published var deepScan = false
@@ -138,6 +140,52 @@ final class AppModel: ObservableObject {
 
     func refreshMounts() {
         mounted = MountedShares.list()
+        Task { await refreshFavorites() }
+    }
+
+    // MARK: Finder favorites
+
+    func refreshFavorites() async {
+        let paths = await Task.detached(priority: .userInitiated) { FinderFavorites.paths() }.value
+        favorites = Set(paths)
+    }
+
+    func isFavorite(_ path: String) -> Bool {
+        favorites.contains(FinderFavorites.normalizedPath(path))
+    }
+
+    /// Adds the mount point to the Finder sidebar Favorites, or removes it if it is already there.
+    func toggleFavorite(_ path: String) async {
+        let removing = isFavorite(path)
+        let result = await Task.detached(priority: .userInitiated) { () -> Result<Bool, Error> in
+            do {
+                if removing {
+                    try FinderFavorites.remove(path: path)
+                } else {
+                    try FinderFavorites.add(path: path)
+                }
+                return .success(true)
+            } catch {
+                return .failure(error)
+            }
+        }.value
+        await refreshFavorites()
+
+        guard case .failure(let error) = result else { return }
+        if removing {
+            alert = AlertItem(
+                title: "Retrait des favoris impossible",
+                message: error.localizedDescription
+                    + "\n\nDans le Finder, fais un clic droit sur le partage dans la barre latérale et choisis « Retirer de la barre latérale »."
+            )
+        } else {
+            // Fallback: select the folder in Finder so the user only has to press ⌃⌘T.
+            NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
+            alert = AlertItem(
+                title: "Ajout manuel nécessaire",
+                message: error.localizedDescription + "\n\n" + FinderFavoritesError.manualHint
+            )
+        }
     }
 
     func mountedShare(for share: NetworkShare) -> MountedShare? {
