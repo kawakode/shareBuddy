@@ -80,6 +80,7 @@ xattr -d com.apple.quarantine /usr/local/bin/shareman</pre>
               <tr><td><code>shareman mount &lt;<span lang="fr">partage</span><span lang="en">share</span>&gt;</code></td><td lang="fr">Monte un partage, dans <code>/Volumes</code> par défaut.</td><td lang="en">Mounts a share, in <code>/Volumes</code> by default.</td></tr>
               <tr><td><code>shareman mounts</code></td><td lang="fr">Liste les partages réseau montés.</td><td lang="en">Lists the mounted network shares.</td></tr>
               <tr><td><code>shareman unmount &lt;<span lang="fr">dossier</span><span lang="en">folder</span>&gt;</code></td><td lang="fr">Démonte un partage (<code>--force</code> si des fichiers sont ouverts).</td><td lang="en">Unmounts a share (<code>--force</code> if files are open).</td></tr>
+              <tr><td><code>shareman favorite add &lt;<span lang="fr">dossier</span><span lang="en">folder</span>&gt;</code></td><td lang="fr">Ajoute un partage monté aux favoris de la barre latérale du Finder (<code>remove</code> pour le retirer, <code>list</code> pour les voir).</td><td lang="en">Adds a mounted share to the Finder sidebar Favorites (<code>remove</code> takes it out, <code>list</code> shows them).</td></tr>
             </tbody>
           </table>
 
@@ -105,6 +106,13 @@ shareman mount nas.local:/volume1/media --at ~/NAS/media --read-only
 
 shareman mounts
 shareman unmount /Volumes/media</pre>
+
+          <h3 lang="fr">Favoris du Finder</h3><h3 lang="en">Finder Favorites</h3>
+<pre>shareman favorite add /Volumes/media       <span class="c" lang="fr"># dans la barre latérale du Finder</span><span class="c" lang="en"># into the Finder sidebar</span>
+shareman favorite list
+shareman favorite remove /Volumes/media</pre>
+          <p lang="fr">Dans l’application, c’est l’étoile à côté d’un partage monté. macOS ne propose plus d’API officielle pour cela&nbsp;; s’il refuse, ShareMan sélectionne le dossier dans le Finder et il suffit de faire <b>Fichier &gt; Ajouter à la barre latérale</b> (⌃⌘T).</p>
+          <p lang="en">In the app, it’s the star next to a mounted share. macOS no longer has an official API for this; if it refuses, ShareMan selects the folder in Finder and you just choose <b>File &gt; Add to Sidebar</b> (⌃⌘T).</p>
 
           <h3 lang="fr">Options du scan</h3><h3 lang="en">Scan options</h3>
           <table>

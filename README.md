@@ -20,6 +20,7 @@
 - **Trouve** les serveurs de votre réseau local, via Bonjour et un scan rapide du sous-réseau. NFS d'abord, SMB ensuite.
 - **Liste** les exports NFS et les partages SMB de chaque serveur.
 - **Monte** le partage choisi dans `/Volumes`, comme « Se connecter au serveur » du Finder. Le trousseau est utilisé automatiquement.
+- **Ajoute** un partage monté aux favoris de la barre latérale du Finder, d'un clic sur l'étoile.
 - **Scan approfondi** pour les serveurs NFS discrets, qui ne s'annoncent pas et répondent mal au scan normal.
 
 ## Installation
@@ -43,6 +44,7 @@ ShareMan existe aussi en ligne de commande, `shareman` :
 ```sh
 shareman                                  # cherche les serveurs et liste leurs partages
 shareman mount nas.local:/volume1/media   # monte un partage dans /Volumes
+shareman favorite add /Volumes/media      # l'ajoute aux favoris du Finder
 ```
 
 L'outil est fourni avec chaque version (`shareman-macos.zip`). Toutes les commandes et options sont dans le [guide](https://shareman.kawa.zip/guide.html#ligne-de-commande).
